@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Llamba", "Llamba.csproj", "{9B6CD562-FF0A-4349-86C0-5BC43A2D9EFB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9B6CD562-FF0A-4349-86C0-5BC43A2D9EFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B6CD562-FF0A-4349-86C0-5BC43A2D9EFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B6CD562-FF0A-4349-86C0-5BC43A2D9EFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B6CD562-FF0A-4349-86C0-5BC43A2D9EFB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ACF2C884-211B-4667-ADB4-E8ECD500A803}
+	EndGlobalSection
+EndGlobal

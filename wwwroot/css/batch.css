@@ -1,0 +1,122 @@
+﻿.batch-interface {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 100px;
+    margin-top: 20px;
+}
+
+.horizontal-layout {
+    display: flex;
+    height: 60px;
+    width: 100%;
+}
+
+.left-input {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-left: 20px;
+    margin-right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f3f3;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    width: 100%;
+}
+
+.right-layout {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 60px;
+    margin-right: 50px;
+    width: 100px;
+}
+
+.input-field {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    margin-right: 50px;
+}
+
+.input-label {
+    margin-right: 10px;
+    color: #f3f3f3;
+    font-weight: bold;
+}
+
+.input-box {
+    flex-grow: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f3f3;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.input-box:focus {
+    outline: 0;
+    border: 1px solid #66afe9;
+    box-shadow: 0 0 5px #66afe9;
+}
+
+.note {
+    color: white;
+    margin-left: 20px;
+}
+
+.response-list {
+    padding: 10px;
+    margin: 20px;
+    border: 2px solid #888;
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    font-family: 'Dancing Script', cursive;
+}
+
+.response-entry {
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-family: 'Dancing Script', cursive;
+}
+.input-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.input-slider:hover {
+    opacity: 1;
+}
+
+.input-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.slider-value {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 2px 5px;
+    border-radius: 5px;
+    white-space: nowrap;
+    z-index: 1;
+}

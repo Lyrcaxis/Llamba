@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>LLama Server Test | Batching</title>
+    <meta name="description" content="Home" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,follow" />
+    <link rel="icon" href="img/logo.png" />
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/batch.css">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Chat</a></li>
+                <li><a href="/">Narrate</a></li>
+                <li><a href="/batch.html">Batch</a></li>
+                <li><a href="/">DPO</a></li>
+                <li><a href="/">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="batch-interface">
+            <div class="horizontal-layout">
+                <textarea class="left-input" placeholder="Enter batch text... (shift+enter for newline)"></textarea>
+            </div>
+            <div class="vertical-layout">
+                <div class="input-field">
+                    <label class="input-label" for="batch_count">Batch Count:</label>
+                    <input class="input-slider" type="range" id="batch_count" min="10" max="1000" value="10">
+                    <div class="slider-value">10</div>
+                </div>
+                <div class="input-field">
+                    <label class="input-label" for="request_tokens">Request Tokens:</label>
+                    <input class="input-slider" type="range" id="request_tokens" min="10" max="100" value="10">
+                    <div class="slider-value">10</div>
+                </div>
+            </div>
+        </section>
+        <div class="note">Note: The browser has a limitation of 6 (?) concurrent requests, and at the time being this restricts the speed. This whole webpage was built for testing. For better speeds (up to 20x), use the API. </div>
+        <div class="response-list"></div>
+    </main>
+    <script src="js/batch.js"></script>
+    <script src="js/utilities.js"></script>
+</body>
+</html>
