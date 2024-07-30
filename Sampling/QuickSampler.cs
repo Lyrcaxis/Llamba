@@ -46,8 +46,8 @@ namespace Llamba.Sampling {
 			// Add the direct logit biases to the logits.
 			if (_samplerParams.logitBiasBuffer != null) { TensorPrimitives.Add(logits, _samplerParams.logitBiasBuffer, logits); }
 
-			// Finally, sample the most-probable prediction after applying some randomizatoin.
-			return TensorPrimitives.IndexOfMax(SmartBuffer.ApplyRando(logits));
+			// Finally, sample the most-probable prediction after applying some randomization.
+			return TensorPrimitives.IndexOfMax(SmartBuffer.ApplyTemperature(logits, 1f));
 		}
 		void ISampler.PostSampleInternal(int sampledToken) {
 			if (!penalizeRepetition) { return; }
