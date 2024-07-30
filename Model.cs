@@ -15,9 +15,7 @@ namespace Llamba {
 		public LLamaContext context { get; init; }
 		public static Dictionary<int, string> vocab { get; private set; }
 
-
-		public Func<ISampler> SamplerFactoryFunc = () => new QuickSampler() { preventRefusals = true, singleLine = false, penalizeRepetition = true };
-		//public Func<ISampler> SamplerFactoryFunc = () => new LLamaSampler();
+		public Func<ISampler> SamplerFactoryFunc { get; set; } = () => new StandardSampler();
 
 		public int eotID { get; private set; }
 
@@ -46,7 +44,7 @@ namespace Llamba {
 			eotID = Tokenize(format.EOT)[0];
 			context = model.CreateContext(modelParams);
 			SmartBuffer.Return(SmartBuffer.Rent()); // Get the SmartBuffer going
-			processor = new(context.NativeHandle); // Initialize the processor
+			processor = new(context.NativeHandle, debug: false); // Initialize the processor
 		}
 
 		public InferenceRequest AddRequest(ChatQuery query) {

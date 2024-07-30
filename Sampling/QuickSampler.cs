@@ -29,12 +29,13 @@ namespace Llamba.Sampling {
 			if (preventRefusals && samplerParams.receivedTokensCount < 10) { SmartBuffer.PreventRefusals(logits); }
 			if (singleLine) { SmartBuffer.PreventNewlines(logits); }
 			if (banCaps) { SmartBuffer.PreventCaps(logits); }
-			SmartBuffer.PreventBadTokens(logits);
 
 			// Alter the logits accordingly to attempt and meet ideal response length, if specified.
 			if (idealResponseLength > 0) {
-				var reducedLogits = -5 * (1 - Math.Min(samplerParams.receivedTokensCount, idealResponseLength) / (float) idealResponseLength);
-				logits[Model.instance.eotID] = Math.Min(logits[Model.instance.eotID], reducedLogits);
+				TensorPrimitives.SoftMax(logits, _samplerParams.softMaxBuffer);		// Get the strength of the logits -- convert to percentages.
+				if (_samplerParams.softMaxBuffer[Model.instance.eotID] > 1e-8) {	// Only need to apply if the percentages are strong enough.
+					logits[Model.instance.eotID] -= 100 * (1 - samplerParams.receivedTokensCount / (float) idealResponseLength);
+				}
 			}
 
 			// Penalize repetition by adding the penalty buffers to our logits before sampling.
@@ -52,13 +53,15 @@ namespace Llamba.Sampling {
 		void ISampler.PostSampleInternal(int sampledToken) {
 			if (!penalizeRepetition) { return; }
 
-			// Register new token to the penalty buffers.
+			// Register the new token to the penalty buffers.
 			_samplerParams.frequencyPenaltyBuffer[sampledToken] -= 0.1f;
-			if (_samplerParams.presencePenaltyBuffer[sampledToken] == 0) { _samplerParams.presencePenaltyBuffer[sampledToken] -= 0.2f; }
+			if (_samplerParams.presencePenaltyBuffer[sampledToken] == 0) { _samplerParams.presencePenaltyBuffer[sampledToken] = -1f; }
 		}
 
 		void ISampler.Initialize(ChatQuery query, IEnumerable<int> promptTokens) {
 			samplerParams = new QuickSamplerRequestParams(promptTokens);
+
+			if (idealResponseLength > 0) { _samplerParams.softMaxBuffer = SmartBuffer.Rent(); }
 
 			if (query.logit_bias != null) {
 				_samplerParams.logitBiasBuffer = SmartBuffer.Rent();
@@ -72,8 +75,8 @@ namespace Llamba.Sampling {
 				var inputTokensCount = samplerParams.promptTokens.Count;
 				for (int i = inputTokensCount - 1; i > Math.Max(inputTokensCount - 1024, 1); i--) {
 					var tokenToPenalize = _samplerParams.promptTokens[i];
-					_samplerParams.frequencyPenaltyBuffer[tokenToPenalize] -= 0.2f * ((i / (2 * (float) inputTokensCount)));
-					if (_samplerParams.presencePenaltyBuffer[tokenToPenalize] == 0) { _samplerParams.presencePenaltyBuffer[tokenToPenalize] -= 0.2f; }
+					_samplerParams.frequencyPenaltyBuffer[tokenToPenalize] -= 0.2f * (2 * (i / (float) inputTokensCount));
+					if (_samplerParams.presencePenaltyBuffer[tokenToPenalize] == 0) { _samplerParams.presencePenaltyBuffer[tokenToPenalize] = -1f; }
 				}
 			}
 		}
@@ -82,16 +85,18 @@ namespace Llamba.Sampling {
 			public float[] presencePenaltyBuffer { get; set; }
 			public float[] frequencyPenaltyBuffer { get; set; }
 			public float[] logitBiasBuffer { get; set; }
+			public float[] softMaxBuffer { get; set; }
+
 
 			public QuickSamplerRequestParams(IEnumerable<int> promptTokens) : base(promptTokens) { }
 
 			async public override void Dispose() {
 				base.Dispose();
 				if (presencePenaltyBuffer != null) { SmartBuffer.Return(presencePenaltyBuffer); }
-				if (presencePenaltyBuffer != null) { SmartBuffer.Return(frequencyPenaltyBuffer); }
+				if (frequencyPenaltyBuffer != null) { SmartBuffer.Return(frequencyPenaltyBuffer); }
 				if (logitBiasBuffer != null) { SmartBuffer.Return(logitBiasBuffer); }
+				if (softMaxBuffer != null) { SmartBuffer.Return(softMaxBuffer); }
 			}
 		}
-
 	}
 }

@@ -1,4 +1,4 @@
-import os, uvicorn, fastapi, sys, asyncio, time; from tokenizers import Tokenizer; app = fastapi.FastAPI()
+import uvicorn, fastapi, sys; from tokenizers import Tokenizer; app = fastapi.FastAPI()
 
 @app.post("/encode")
 async def encode(request: fastapi.Request):
@@ -10,5 +10,4 @@ async def decode(request: fastapi.Request):
 
 if __name__ == "__main__":
     tokenizer: Tokenizer = Tokenizer.from_file(sys.argv[sys.argv.index('--path') + 1]);
-    loop = asyncio.get_event_loop(); asyncio.set_event_loop(loop);
     uvicorn.run(app, host=None, port=8150, log_level=None, timeout_keep_alive=5);

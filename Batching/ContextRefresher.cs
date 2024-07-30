@@ -36,15 +36,15 @@ namespace Llamba.Batching {
 		/// <summary> When an update is needed, defrags the cache and appends new requests as new sequences. </summary>
 		/// <remarks> Internally decodes the newly added prompts, leaving only the last token of their sequence undecoded. </remarks>
 		public static void AdditiveContextRefresh(SafeLLamaContextHandle context, LLamaBatch batch, int maxContextSize, int maxBatchSize, List<InferenceRequest> active, ConcurrentQueue<InferenceRequest> queued) {
-			if (!ShouldRefresh(context, maxContextSize, active, queued, out var currentContextSize, remSeq: true)) { return; } // If there's no reason to make any changes to the context, just keep going.
+			if (!ShouldRefresh(context, maxContextSize, active, queued, out var currentContextSize)) { return; } // If there's no reason to make any changes to the context, just keep going.
 			PartialContextRefreshHelper.DefragContext(context, active); // Defrag the current context, bringing remaining sequences to have sequence IDs of [0,1,2,...,n]
 			int newRequestCount = UnqueueRequests(maxContextSize, active, queued, currentContextSize);		// Fill up the 'active' list with 'queued' inference requests.
 			PromptProcessNewRequests(context, batch, active, maxBatchSize, active.Count - newRequestCount); // Prompt process the new requests, and prepare them for inference.
 		}
 
 
-		static bool ShouldRefresh(SafeLLamaContextHandle context, int maxContextSize, List<InferenceRequest> active, ConcurrentQueue<InferenceRequest> queued, out int currentContextSize, bool remSeq = false) {
-			void Remove(int i) { active.RemoveAt(i); if (remSeq) { context.ClearSeq(active[i].sequenceID); } } // Deactivate and optionally clear the sequence in the context. Leaving it is slightly faster.
+		static bool ShouldRefresh(SafeLLamaContextHandle context, int maxContextSize, List<InferenceRequest> active, ConcurrentQueue<InferenceRequest> queued, out int currentContextSize) {
+			void Remove(int i) { context.ClearSeq(active[i].sequenceID); active.RemoveAt(i); } // Deactivate and optionally clear the sequence in the context. Leaving it is slightly faster.
 			currentContextSize = 0; // Go through all the requests and if they're no longer active, remove them -- otherwise add their total count to the total, so we'll know if we need to refresh the actives.
 			for (int i = active.Count - 1; i >= 0; i--) { if (!active[i].needsGen) { Remove(i); } else { currentContextSize += active[i].totalTokens; } }
 			return !(queued.IsEmpty || currentContextSize >= contextPercentSweetspot * maxContextSize); // If the cache is sufficiently loaded, we can let it be and continue inferencing for the existing sequences.
@@ -54,7 +54,7 @@ namespace Llamba.Batching {
 			for (int i = active.Count - 1; i >= 0; i--) { var request = active[i]; awaitingTokenSize += request.remainingTokensCount; minAwaitingSize = Math.Min(request.remainingTokensCount, minAwaitingSize); }
 
 			// Get the minimum amount of empty space we need to remain empty.
-			var maxFillBunch = maxContextSize * 0.8 - active.Count * minAwaitingSize;
+			var maxFillBunch = maxContextSize - active.Count * minAwaitingSize;
 
 			// Prepare queued requests for becoming active, based on the available space in the context
 			while (currentContextSize < maxFillBunch) {
@@ -67,7 +67,7 @@ namespace Llamba.Batching {
 				currentContextSize += newRequest.inputTokensCount;
 				awaitingTokenSize += newRequest.inputTokensCount;
 				minAwaitingSize = Math.Min(newRequest.remainingTokensCount, minAwaitingSize);
-				maxFillBunch = maxContextSize * 0.8 - (active.Count * minAwaitingSize);
+				maxFillBunch = maxContextSize - (active.Count * minAwaitingSize);
 				newRequestCount++;
 			}
 			return newRequestCount;

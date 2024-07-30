@@ -9,7 +9,7 @@ namespace Llamba.Sampling {
 	/// <remarks> It's noticeably slower than the QuickSampler (~20x slower), but that's negligible unless it's used for batching. </remarks>
 	public class LLamaSampler : ISampler {
 		public float temperature { get; set; } = 0.5f;
-		public float repetition_penalty { get; set; } = 1.2f;
+		public float repetition_penalty { get; set; } = 1.1f;
 		public float presence_penalty { get; set; } = 0;
 		public float frequency_penalty { get; set; } = 0;
 		public int repetition_range { get; set; } = 1024;

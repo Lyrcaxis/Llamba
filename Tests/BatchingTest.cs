@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,25 +27,26 @@ namespace Llamba.Tests {
 		public BatchingTest() {
 			Server.Server.app.MapGet("/tests/batching", SeeResults);
 
-			remainingRequests = totalBatches = 1500;
-			tokensToRequest = 10;
+			remainingRequests = totalBatches = 500;
+			tokensToRequest = 100;
 
-			Model.instance.SamplerFactoryFunc = () => new QuickSampler() { preventRefusals = false, singleLine = false, penalizeRepetition = false }; // The quickest version
-			//Model.instance.SamplerFactoryFunc = () => new QuickSampler() { preventRefusals = true, singleLine = true, penalizeRepetition = true }; // The not-as-quick version (customizable tho)
+			//Model.instance.SamplerFactoryFunc = () => new QuickSampler() { preventRefusals = false, singleLine = false, penalizeRepetition = false }; // The quickest version.
+			Model.instance.SamplerFactoryFunc = () => new StandardSampler() { preventRefusals = true, temperature = 0.5f, repetition_penalty = 1.1f }; // The not-as-quick version (customizable tho).
 			//Model.instance.SamplerFactoryFunc = () => new LLamaSampler() { temperature = 0.5f, repetition_penalty = 1.1f, top_p = 0.9f }; // The terribly slow llama sampler version.
 
 			beginTime = DateTime.Now;
-			new System.Threading.Thread(() => {
-				var messages = new ChatMessage[] { new("You are Jonas, knower of everything and master of nothing. You will take a role in this adventure and guide the player towards a creative and motivating journey! Calm down, though.", Role.System) };
-				for (int ID = 0; ID < totalBatches; ID++) { _ = ChatRequest(messages, tokensToRequest, ID); }
+			var messageList = new List<ChatMessage[]>();
+			var sharedPrompt = "You are Jonas, knower of everything and master of nothing. You will take a role in this adventure and guide the player towards a creative and motivating journey!";
+			messageList.Add([new($"{sharedPrompt} Super short response.", Role.System)]);
+			messageList.Add([new($"{sharedPrompt} Short response.", Role.System)]);
+			messageList.Add([new($"{sharedPrompt} Long response.", Role.System)]);
+			for (int ID = 0; ID < totalBatches; ID++) { _ = ChatRequest(messageList[ID % messageList.Count], tokensToRequest, ID); }
 
-				// This can substitute the test above, works with OpenAI-compatible jsonl files.
-				//var prompts = new string[totalBatches];
-				//var jsonlPath = "";
-				//var load = System.IO.File.ReadAllLines(jsonlPath).Take(totalBatches).Select(x => System.Text.Json.JsonSerializer.Deserialize<ConvoImport>(x).body.messages).ToArray();
-				//for (int ID = 0; ID < totalBatches; ID++) { _ = ChatRequest(load[ID], tokensToRequest, ID); }
-
-			}).Start();
+			// This can substitute the test above, works with OpenAI-compatible jsonl files.
+			//var prompts = new string[totalBatches];
+			//var jsonlPath = "";
+			//var load = System.IO.File.ReadAllLines(jsonlPath).Take(totalBatches).Select(x => System.Text.Json.JsonSerializer.Deserialize<ConvoImport>(x).body.messages).ToArray();
+			//for (int ID = 0; ID < totalBatches; ID++) { _ = ChatRequest(load[ID], tokensToRequest, ID); }
 		}
 
 		async Task ChatRequest(ChatMessage[] messages, int tokens, int ID) {
@@ -73,8 +75,12 @@ namespace Llamba.Tests {
 		}
 
 		async Task SeeResults(HttpContext context) {
+			var dashes = "\n--------------------------------------------------------\n";
+			var sb = new StringBuilder();
+			foreach (var (key, val) in testResponses) { sb.AppendLine($"{dashes}{key}:\n{val}{dashes}"); }
+
 			await using var sw = new StreamWriter(context.Response.Body);
-			foreach (var (key, val) in testResponses) { await sw.WriteLineAsync($"{key}: {val}"); }
+			await sw.WriteLineAsync(sb.ToString());
 			await sw.FlushAsync();
 		}
 	}

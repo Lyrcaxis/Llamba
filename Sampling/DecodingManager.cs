@@ -30,8 +30,8 @@ namespace Llamba.Sampling {
 			public Decoder decoder = Encoding.UTF8.GetDecoder();
 
 			public bool Decode(out string output, int sampledToken) {
-				var charBuffer = ArrayPool<char>.Shared.Rent(16);
-				var byteBuffer = ArrayPool<byte>.Shared.Rent(16);
+				var charBuffer = ArrayPool<char>.Shared.Rent(32);
+				var byteBuffer = ArrayPool<byte>.Shared.Rent(32);
 				try {
 					var bytesCount = Model.instance.model.NativeHandle.TokenToSpan(sampledToken, byteBuffer);
 					decoder.Convert(byteBuffer, 0, (int) bytesCount, charBuffer, 0, charBuffer.Length, false, out var _, out var charsUsed, out bool _);
