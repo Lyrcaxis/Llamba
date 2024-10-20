@@ -27,21 +27,20 @@ namespace Llamba.Tests {
 		public BatchingTest() {
 			Server.Server.app.MapGet("/tests/batching", SeeResults);
 
-			remainingRequests = totalBatches = 500;
-			tokensToRequest = 100;
+			remainingRequests = totalBatches = 1000;
+			tokensToRequest = 0;
 
 			//Model.instance.SamplerFactoryFunc = () => new QuickSampler() { preventRefusals = false, singleLine = false, penalizeRepetition = false }; // The quickest version.
 			Model.instance.SamplerFactoryFunc = () => new StandardSampler() { preventRefusals = true, temperature = 0.5f, repetition_penalty = 1.1f }; // The not-as-quick version (customizable tho).
 			//Model.instance.SamplerFactoryFunc = () => new LLamaSampler() { temperature = 0.5f, repetition_penalty = 1.1f, top_p = 0.9f }; // The terribly slow llama sampler version.
 
 			beginTime = DateTime.Now;
-			var messageList = new List<ChatMessage[]>();
+			var messageList = new List<List<ChatMessage>>();
 			var sharedPrompt = "You are Jonas, knower of everything and master of nothing. You will take a role in this adventure and guide the player towards a creative and motivating journey!";
 			messageList.Add([new($"{sharedPrompt} Super short response.", Role.System)]);
 			messageList.Add([new($"{sharedPrompt} Short response.", Role.System)]);
 			messageList.Add([new($"{sharedPrompt} Long response.", Role.System)]);
-			for (int ID = 0; ID < totalBatches; ID++) { _ = ChatRequest(messageList[ID % messageList.Count], tokensToRequest, ID); }
-
+			for (int ID = 0; ID < totalBatches; ID++) { _ = ChatRequest([.. messageList[ID % messageList.Count]], tokensToRequest, ID); }
 			// This can substitute the test above, works with OpenAI-compatible jsonl files.
 			//var prompts = new string[totalBatches];
 			//var jsonlPath = "";
@@ -50,7 +49,7 @@ namespace Llamba.Tests {
 		}
 
 		async Task ChatRequest(ChatMessage[] messages, int tokens, int ID) {
-			int receivedTokens = 0;
+			int receivedTokenCount = 0;
 			using var request = Model.instance.AddRequest(new() { messages = messages, max_tokens = tokens });
 			var sb = new StringBuilder();
 			while (request.needsGen == true) { GrabResponses(); await Task.Delay(1); }
@@ -58,7 +57,7 @@ namespace Llamba.Tests {
 			testResponses.TryAdd(ID, sb.ToString());
 
 			lock (this) {
-				totalReceivedTokens += receivedTokens;
+				totalReceivedTokens += receivedTokenCount;
 				if (--remainingRequests <= 0) {
 					var totalTime = (DateTime.Now - beginTime).TotalSeconds;
 					Console.ForegroundColor = ConsoleColor.Green;
@@ -71,13 +70,13 @@ namespace Llamba.Tests {
 				}
 			}
 
-			void GrabResponses() { while (request.nextResponse.TryDequeue(out var r)) { sb.Append(r.response); receivedTokens += r.tokensCount; } }
+			void GrabResponses() { while (request.nextResponse.TryDequeue(out var r)) { sb.Append(r.response); receivedTokenCount += r.tokensCount; } }
 		}
 
 		async Task SeeResults(HttpContext context) {
 			var dashes = "\n--------------------------------------------------------\n";
 			var sb = new StringBuilder();
-			foreach (var (key, val) in testResponses) { sb.AppendLine($"{dashes}{key}:\n{val}{dashes}"); }
+			foreach (var (key, val) in testResponses) { sb.AppendLine($"{dashes}{key + 1}:\n{val}{dashes}"); }
 
 			await using var sw = new StreamWriter(context.Response.Body);
 			await sw.WriteLineAsync(sb.ToString());

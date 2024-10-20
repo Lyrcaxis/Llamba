@@ -1,62 +1,55 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-public struct ChatQuery : IQueryParamsContainer {
-    /// <summary> A list of messages describing the conversation so far. </summary>
-    public ChatMessage[] messages { get; set; }
-
-    /// <summary> If set, partial message deltas will be sent, like in ChatGPT. </summary>
-    /// <remarks> Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. </remarks>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool? stream { get; set; }
-
+public interface IQueryParamsContainer {
     /// <summary> The maximum number of tokens to generate in the chat completion. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int? max_tokens { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int? max_tokens { get; set; }
 
     /// <summary> The minimum number of tokens to generate int he chat completion. </summary>
     /// <remarks> The LLM will keep generating tokens until this minimum amount is reached. </remarks>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int? min_tokens { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int? min_tokens { get; set; }
 
     /// <summary> Up to 4 sequences where the API will stop generating further tokens. Currently unused. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public string[] stop { get; set; }
-
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] string[] stop { get; set; }
 
 
 
     /// <summary> [0.0, 2.0]. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public float? temperature { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] float? temperature { get; set; }
 
+    
     /// <summary> An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. </summary>
     /// <remarks> So 0.1 means only the tokens comprising the top 10% probability mass are considered. </remarks>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public float? top_p { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] float? top_p { get; set; }
 
     /// <summary> A way to eliminate tokens that might not likeable above a threshold. Min P emphasizes a balance, by setting a minimum based on how confident the top choice is </summary>
     /// <remarks> So 0.1 means that only tokens that have at least 10% as probable as the top token are considered. </remarks>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public float? min_p { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] float? min_p { get; set; }
 
 
 
     /// <summary> [-2.0 ,2.0]. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public float? presence_penalty { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] float? presence_penalty { get; set; }
 
     /// <summary> [-2.0, 2.0]. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public float? frequency_penalty { get; set; }
-
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] float? frequency_penalty { get; set; }
 
     /// <summary> [Close to 1] Alternative to presence and frequency penalties. Advised to only use one of the above, and not all of them. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public float? repetition_penalty { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] float? repetition_penalty { get; set; }
 
     /// <summary> [0, token_count] The amount of tokens that will be valid for the applying of repetition penalties. Count starts from the end. </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int? repetition_range { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int? repetition_range { get; set; }
 
 
 
     /// <summary> Enabling this will turn the query into a text-completion, making the model continue the ongoing text instead of writing on a new turn. </summary>
     /// <remarks> Effectively just removes the appending of `|im_start|assistant\n` at the prompt's end. </remarks>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool? @continue { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool? @continue { get; set; }
 
     /// <summary> The value of this field will be appended to the current text before being passed to the model. </summary>
     /// <remarks> For example if it is `{{char}}:`, but you don't wanna see it present in your UI, you can pass it here. </remarks>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public string appendText { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] string appendText { get; set; }
+
 
     /// <summary>
     /// <para> Modify the likelihood of specified tokens appearing in the completion. </para>
@@ -65,5 +58,5 @@ public struct ChatQuery : IQueryParamsContainer {
     /// <para> - values between -1 and 1 should decrease or increase likelihood of selection. </para> 
     /// <para> - values like -100 or 100 should result in a ban or exclusive selection of the relevant token.</para>
     /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public Dictionary<int, float> logit_bias { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] Dictionary<int, float> logit_bias { get; set; }
 }
