@@ -21,29 +21,29 @@ namespace Llamba.Server {
 
             async Task Batch(QueryBatch batchQuery, HttpContext context) {
                 // Prettify the content of the requests
-                foreach (var query in batchQuery.queries) {
-                    foreach (var m in query.messages[..^1]) { m.content = m.content.Trim(); }
-                    for (int i = 1; i < query.messages.Length; i++) { if (query.messages[i].role == "system") { query.messages[i].role = "next"; } }
-                }
+                for (int i = 0; i < (batchQuery.completionQueries?.Length ?? 0); i++) { batchQuery.completionQueries[i].prompt = batchQuery.completionQueries[i].prompt.Trim(); }
+                for (int i = 0; i < (batchQuery.chatQueries?.Length ?? 0); i++) { foreach (var m in batchQuery.chatQueries[i].messages[..^1]) { m.content = m.content.Trim(); } }
 
                 try {
                     await using var sw = new StreamWriter(context.Response.Body);
+
+                    // Create the stop tokens once and share them among all InferenceRequest instances.
                     HashSet<int> stopTokens = (batchQuery.stop?.Any() == true) ? batchQuery.stop.Select(x => Model.instance.Tokenize(x.Replace("\\n", "\n"))[0]).ToHashSet() : null;
 
-
-                    // Create the requests
-                    List<InferenceRequest> requests = new();
-                    foreach (var query in batchQuery.queries) {
-                        var totalT = Model.instance.Tokenize(query.messages).Count;
-                        var maxT = Model.instance.modelParams.ContextSize;
-                        if (totalT + query.max_tokens >= maxT) {
-                            await sw.WriteLineAsync($"Body of {totalT} requested {query.max_tokens}, surpassing {maxT}.\n\n");
-                            await sw.FlushAsync(); // Send the text response back to the client.
-                            return;
-                        }
+                    // Create the requests -- for both Chat and Completion queries.
+                    List<InferenceRequest> requests = [];
+                    for (int i = 0; i < (batchQuery.completionQueries?.Length ?? 0); i++) {
+                        CompletionQuery query = batchQuery.completionQueries[i];
+                        if (await SurpassesPromptLimits(Model.instance.Tokenize(query.prompt).Count, query)) { return; }
+                        requests.Add(Model.instance.AddRequest(query.prompt, query, stopTokens));
+                    }
+                    for (int i = 0; i < (batchQuery.chatQueries?.Length ?? 0); i++) {
+                        ChatQuery query = batchQuery.chatQueries[i];
+                        if (await SurpassesPromptLimits(Model.instance.Tokenize(query.messages).Count, query)) { return; }
                         requests.Add(Model.instance.AddRequest(query, stopTokens));
                     }
 
+                    // Map the response data to their IDs, preparing to send them back asynchronously, and keeping their state and index.
                     var queryCompletionMap = requests.Select(x => false).ToList();
                     var wholeResponses = requests.Select(x => "").ToList();
                     var batchResponse_stream = new BatchResponse() { responses = [] };
@@ -60,7 +60,7 @@ namespace Llamba.Server {
                         }
 
                         // Send the query back to the client after retrieving this batch's responses.
-                        if (batchQuery.stream && batchResponse_stream.responses.Any()) {
+                        if (batchQuery.stream && batchResponse_stream.responses.Count != 0) {
                             await sw.WriteLineAsync($"data: {JsonSerializer.Serialize(batchResponse_stream, options)}\n\n");
                             await sw.FlushAsync(); // Send the text response back to the client.
                         }
@@ -80,6 +80,8 @@ namespace Llamba.Server {
                         await sw.FlushAsync();
                     }
 
+
+                    // Tries to grab the response from specified request ID. Request is disposed if completed.
                     LocalResponse GrabResponse(int id) {
                         var request = requests[id];
                         if (!request.nextResponse.TryDequeue(out var r)) {
@@ -91,12 +93,20 @@ namespace Llamba.Server {
                         }
                         return new LocalResponse(default, r.response, r.stopReason);
                     }
+                    async Task<bool> SurpassesPromptLimits(int tokenCount, IQueryParamsContainer query) {
+                        if (tokenCount + query.max_tokens >= Model.instance.modelParams.ContextSize) {
+                            await sw.WriteLineAsync($"Body of {tokenCount} requested {query.max_tokens}, surpassing {Model.instance.modelParams.ContextSize}.\n\n");
+                            await sw.FlushAsync(); // Send the text response back to the client.
+                            return true;
+                        }
+                        return false;
+                    }
                 }
                 catch (Exception e) { Debug.WriteLine($"{e}\n{e.Message}"); }
             }
         }
 
-        class BatchResponse {
+        public class BatchResponse {
             public List<QueryResponse> responses { get; set; }
 
             public class QueryResponse {
@@ -106,7 +116,8 @@ namespace Llamba.Server {
         }
 
         public struct QueryBatch {
-            public ChatQuery[] queries { get; set; }
+            public CompletionQuery[] completionQueries { get; set; }
+            public ChatQuery[] chatQueries { get; set; }
             public string[] stop { get; set; }
             public bool stream { get; set; }
         }
