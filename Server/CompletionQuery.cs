@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 
 namespace Llamba.Server {
-    struct CompletionQuery : IQueryParamsContainer {
+    public struct CompletionQuery : IQueryParamsContainer {
         /// <summary> A list of messages describing the conversation so far. </summary>
         public string prompt { get; set; }
 
