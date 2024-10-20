@@ -29,6 +29,7 @@ namespace Llamba.Server {
         }
 
         static void Init() {
+            app.MapGet("/ping", async (context) => { context.Response.StatusCode = StatusCodes.Status200OK; });
             chat = new ChatEndpoint(app);
             _ = new CompletionEndpoint(app);
             _ = new ClassificationEndpoint(app);
