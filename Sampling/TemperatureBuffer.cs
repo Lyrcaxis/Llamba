@@ -13,15 +13,15 @@ namespace Llamba.Sampling {
     /// <para> Because of how we apply temperature sampling, we're using a transformed scale for temperature, with increments of 0.05f, that alter the min/max multis of the logits. </para>
     /// </summary>
     public class TemperatureBuffer {
-        static Dictionary<int, TemperatureBuffer> tempMap = [];
+        static Dictionary<int, TemperatureBuffer> temperaturesMap = [];
         static HashSet<TemperatureBuffer> allBuffers = [];
 
-        static bool isInitialized = false; // Avoid re-initialization.
+        public static bool isInitialized = false; // Avoid re-initialization.
 
         /// <summary> Initializes with 40 buffers representing temperature ranges of [0, 2], and runs a coroutine to keep them up-to-date with randomized scales. </summary>
         public static void Initialize(int initialBufferSize) {
             if (isInitialized) { return; }
-            for (int i = 0; i <= 40; i++) { tempMap.Add(i, new TemperatureBuffer(i, initialBufferSize)); } // Temperature range of [0, 2].
+            for (int i = 0; i <= 40; i++) { temperaturesMap.Add(i, new TemperatureBuffer(i, initialBufferSize)); } // Temperature range of [0, 2].
             isInitialized = true;
 
             new Thread(async () => {
@@ -61,8 +61,8 @@ namespace Llamba.Sampling {
 
         /// <summary> Chooses the buffer for the specified temperature, then applies the appropriate randomization to the logits. </summary>
         public static Span<float> ApplyTemperature(Span<float> logits, float temperature) {
-            var scaledTemperatureIndex = Math.Clamp(GetTransformedTemperatureScale(temperature), 0, tempMap.Count - 1);
-            return tempMap[scaledTemperatureIndex].ApplyRando(logits);
+            var scaledTemperatureIndex = Math.Clamp(GetTransformedTemperatureScale(temperature), 0, temperaturesMap.Count - 1);
+            return temperaturesMap[scaledTemperatureIndex].ApplyRando(logits);
         }
 
         /// <summary> Multiplies the logits with random numbers per token ID, effectively randomizing the logits, causing undeterministic sampling. </summary>
@@ -80,7 +80,7 @@ namespace Llamba.Sampling {
 
             // Apply random multiplier from `minT` to `maxT` for each cell. This'll be used to randomize the logits.
             for (int i = 0; i < buffer.Length; i++) { buffer[i] = Lerp(minT, maxT, Random.Shared.NextSingle()); }
-            buffer[Model.instance.eotID] = Math.Min(buffer[Model.instance.eotID], 1); // Do not scale eotID. Found this to work best.
+            buffer[Model.instance.eotID] = Math.Min(buffer[Model.instance.eotID], 1); // Do not scale eotID higher. Found this to work best.
             return buffer;
         }
 

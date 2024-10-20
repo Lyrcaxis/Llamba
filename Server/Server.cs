@@ -35,6 +35,7 @@ namespace Llamba.Server {
             _ = new CompletionEndpoint(app);
             _ = new ClassificationEndpoint(app);
             _ = new BatchEndpoint(app);
+            //_ = new Tests.BatchingTest(app);
         }
 
         static Model LoadModel() {

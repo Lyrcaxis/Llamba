@@ -64,7 +64,7 @@ namespace Llamba.Sampling {
             }
 
             // Pre-create the penalty buffers and calculate their values.
-            if (repetition_penalty != 1f || presence_penalty != 0f || frequency_penalty != 1f) {
+            if (repetition_penalty != 1f || presence_penalty != 0f || frequency_penalty != 0f) {
                 if (repetition_penalty != 1f) { _samplerParams.distinctTokenList = StandardSamplerRequestParams.GetOrCreateDistinctTokenList(); }
                 if (presence_penalty != 0f) { _samplerParams.presencePenaltyBuffer = SmartBuffer.Rent(); }
                 if (frequency_penalty != 0f) { _samplerParams.frequencyPenaltyBuffer = SmartBuffer.Rent(); }
