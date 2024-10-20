@@ -18,6 +18,7 @@ namespace Llamba.Server {
 
         public static void Create(string[] args) {
             var builder = WebApplication.CreateBuilder(args);
+            builder.WebHost.UseUrls("http://localhost:5059");
             app = builder.Build();
             app.UseDefaultFiles().UseStaticFiles();
             Init();
