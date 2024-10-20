@@ -3,19 +3,21 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    height: 100px;
+    height: 200px;
     margin-top: 20px;
 }
 
 .horizontal-layout {
     display: flex;
-    height: 60px;
+    height: 150px;
     width: 100%;
+    position: relative;
 }
 
-.left-input {
+.text-input {
     padding: 10px;
     border: none;
+    resize: none;
     border-radius: 5px;
     margin-left: 20px;
     margin-right: 10px;
@@ -23,6 +25,25 @@
     color: #f3f3f3;
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
     width: 100%;
+}
+
+#completion_mode_toggle {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 2px 5px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    margin-right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f3f3;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transition: background 0.3s ease;
+    cursor: pointer;
+}
+
+#completion_mode_toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .right-layout {
@@ -35,7 +56,7 @@
 }
 
 .input-field {
-    margin: 5px 0;
+    margin: 15px 5px;
     display: flex;
     align-items: center;
     margin-right: 50px;
@@ -49,8 +70,8 @@
 
 .input-box {
     flex-grow: 1;
-    padding: 10px;
-    border: none;
+    padding: 2px 5px;
+    border: 1px solid transparent;
     border-radius: 5px;
     margin-right: 10px;
     background: rgba(255, 255, 255, 0.1);
@@ -65,8 +86,9 @@
 }
 
 .note {
-    color: white;
     margin-left: 20px;
+    align-content: center;
+    color: white;
 }
 
 .response-list {
@@ -85,6 +107,8 @@
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
     font-family: 'Dancing Script', cursive;
+    min-height: 30px;
+    cursor: pointer;
 }
 .input-slider {
     -webkit-appearance: none;
@@ -120,3 +144,20 @@
     white-space: nowrap;
     z-index: 1;
 }
+
+#download-button {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#download-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+#download-button.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}}

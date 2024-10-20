@@ -16,17 +16,18 @@
         <nav>
             <ul class="nav-links">
                 <li><a href="/">Chat</a></li>
-                <li><a href="/">Narrate</a></li>
+                <li><a href="/narrate.html">Narrate</a></li>
                 <li><a href="/batch.html">Batch</a></li>
-                <li><a href="/">DPO</a></li>
-                <li><a href="/">Settings</a></li>
+                <li><a href="/dpo.html">DPO</a></li>
+                <li><a href="/settings.html">Settings</a></li>
             </ul>
         </nav>
     </header>
     <main>
         <section class="batch-interface">
             <div class="horizontal-layout">
-                <textarea class="left-input" placeholder="Enter batch text... (shift+enter for newline)"></textarea>
+                <textarea class="text-input" placeholder="Enter batch text... (shift+enter for newline)"></textarea>
+                <button id="completion_mode_toggle">Chat</button>
             </div>
             <div class="vertical-layout">
                 <div class="input-field">
@@ -39,12 +40,24 @@
                     <input class="input-slider" type="range" id="request_tokens" min="10" max="100" value="10">
                     <div class="slider-value">10</div>
                 </div>
+                <div class="input-field">
+                    <label class="input-label" for="stop_tokens">Stop Tokens:</label>
+                    <input class="input-box" type="text" id="stop_tokens" placeholder="(e.g.: \n|.|,|<|<user>)">
+                </div>
             </div>
         </section>
-        <div class="note">Note: The browser has a limitation of 6 (?) concurrent requests, and at the time being this restricts the speed. This whole webpage was built for testing. For better speeds (up to 20x), use the API. </div>
+        <div style="flex-direction:row; display:flex">
+            <div class="note">Note: You can generate batched responses through this form, but for full inference controls (e.g. temperature, logit bias, etc), use the API. </div>
+            <button class="disabled note" id="download-button">Download</button>
+            <div style="width:70px; margin-left:20px; display:flex; flex-direction:row; align-content:center">
+                <label for="show_initial" style="color: white; margin-right:5px">Show Initial:</label>
+                <input type="checkbox" id="show_initial" checked>
+            </div>
+            <div class="note" id="TPSCounter"></div>
+        </div>
         <div class="response-list"></div>
     </main>
-    <script src="js/batch.js"></script>
+    <script src="js/batch.js" type="module"></script>
     <script src="js/utilities.js"></script>
 </body>
 </html>

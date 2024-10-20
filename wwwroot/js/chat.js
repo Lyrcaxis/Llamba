@@ -1,7 +1,5 @@
 ﻿const chatLog = document.querySelector(".chat-log");
 const chatInput = document.querySelector(".chat-input");
-const sendButton = document.querySelector(".send-button");
-const clearButton = document.querySelector(".clear-button");
 
 let chatMessageHistory = []; // Create an array that holds all messages and updates.
 let refreshFullChat = null;
@@ -36,7 +34,10 @@ function _initializeChatLog() {
     function saveChat() { localStorage.setItem('messageHistoryLog', JSON.stringify(chatMessageHistory)); }
 }
 
-function _initializeSendButton() {
+function _initializeSideButtons() {
+    const sendButton = document.querySelector(".send-button");
+    const clearButton = document.querySelector(".clear-button");
+
     chatInput.addEventListener("keydown", function (e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendButton.click(); }
         else if (e.key === 'Tab') {
@@ -48,10 +49,8 @@ function _initializeSendButton() {
         }
     });
     sendButton.addEventListener("click", async () => {
-        if (chatInput.value) {
-            chatMessageHistory.push({ sender: "user", portrait: 'img/user.png', content: chatInput.value });
-            chatInput.value = '';
-        }
+        if (chatInput.value) { chatMessageHistory.push({ sender: "user", portrait: 'img/user.png', content: chatInput.value }); }
+        chatInput.value = '';
 
         var newResponse = null;
         const aiResponse = getAIResponse((m) => {
@@ -67,6 +66,7 @@ function _initializeSendButton() {
     });
     clearButton.addEventListener("click", async () => {
         chatMessageHistory = reactiveArray([], () => { refreshFullChat(); saveFullChat(); });
+        chatInput.value = '';
         refreshFullChat();
     });
 
